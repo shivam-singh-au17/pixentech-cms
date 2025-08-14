@@ -60,8 +60,8 @@ export function EnhancedDashboardStats({
       title: 'Unique Players',
       value: commaSeparated(data.uniqueUsers),
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-blue-600 dark:text-blue-400',
+      bgColor: 'bg-blue-100 dark:bg-blue-900/30',
       description: 'Active users',
       trend: null,
     },
@@ -69,8 +69,8 @@ export function EnhancedDashboardStats({
       title: 'Total Bets',
       value: commaSeparated(data.betCount),
       icon: Target,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-100 dark:bg-purple-900/30',
       description: 'Bet count',
       trend: null,
     },
@@ -78,8 +78,8 @@ export function EnhancedDashboardStats({
       title: 'Turnover',
       value: formatCurrency(data.turnOver, currency),
       icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-100 dark:bg-green-900/30',
       description: 'Total volume',
       trend: null,
     },
@@ -87,8 +87,8 @@ export function EnhancedDashboardStats({
       title: 'Won Amount',
       value: formatCurrency(data.wonAmount, currency),
       icon: Award,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
+      color: 'text-orange-600 dark:text-orange-400',
+      bgColor: 'bg-orange-100 dark:bg-orange-900/30',
       description: 'Player winnings',
       trend: null,
     },
@@ -96,8 +96,10 @@ export function EnhancedDashboardStats({
       title: 'GGR',
       value: formatCurrency(data.ggr, currency),
       icon: data.ggr >= 0 ? TrendingUp : TrendingDown,
-      color: data.ggr >= 0 ? 'text-green-600' : 'text-red-600',
-      bgColor: data.ggr >= 0 ? 'bg-green-100' : 'bg-red-100',
+      color:
+        data.ggr >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+      bgColor:
+        data.ggr >= 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30',
       description: 'Gross gaming revenue',
       trend: `${setNumberFormat(marginPercentage, 2)}%`,
     },
@@ -105,8 +107,8 @@ export function EnhancedDashboardStats({
       title: 'Avg Bet Size',
       value: formatCurrency(avgBetSize, currency),
       icon: BarChart3,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100',
+      color: 'text-indigo-600 dark:text-indigo-400',
+      bgColor: 'bg-indigo-100 dark:bg-indigo-900/30',
       description: 'Per bet average',
       trend: null,
     },
@@ -117,16 +119,24 @@ export function EnhancedDashboardStats({
       title: 'Win Rate',
       value: `${setNumberFormat(winRate, 2)}%`,
       icon: Percent,
-      color: winRate >= 50 ? 'text-red-600' : 'text-green-600',
-      bgColor: winRate >= 50 ? 'bg-red-100' : 'bg-green-100',
+      color:
+        winRate >= 50 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
+      bgColor:
+        winRate >= 50 ? 'bg-red-100 dark:bg-red-900/30' : 'bg-green-100 dark:bg-green-900/30',
       description: 'Player win percentage',
     },
     {
       title: 'Margin',
       value: `${setNumberFormat(marginPercentage, 2)}%`,
       icon: marginPercentage >= 0 ? TrendingUp : TrendingDown,
-      color: marginPercentage >= 0 ? 'text-green-600' : 'text-red-600',
-      bgColor: marginPercentage >= 0 ? 'bg-green-100' : 'bg-red-100',
+      color:
+        marginPercentage >= 0
+          ? 'text-green-600 dark:text-green-400'
+          : 'text-red-600 dark:text-red-400',
+      bgColor:
+        marginPercentage >= 0
+          ? 'bg-green-100 dark:bg-green-900/30'
+          : 'bg-red-100 dark:bg-red-900/30',
       description: 'House edge',
     },
     {
@@ -135,16 +145,16 @@ export function EnhancedDashboardStats({
       icon: Activity,
       color:
         data.betCount > 1000
-          ? 'text-green-600'
+          ? 'text-green-600 dark:text-green-400'
           : data.betCount > 500
-            ? 'text-yellow-600'
-            : 'text-red-600',
+            ? 'text-yellow-600 dark:text-yellow-400'
+            : 'text-red-600 dark:text-red-400',
       bgColor:
         data.betCount > 1000
-          ? 'bg-green-100'
+          ? 'bg-green-100 dark:bg-green-900/30'
           : data.betCount > 500
-            ? 'bg-yellow-100'
-            : 'bg-red-100',
+            ? 'bg-yellow-100 dark:bg-yellow-900/30'
+            : 'bg-red-100 dark:bg-red-900/30',
       description: 'Platform activity level',
     },
   ]
@@ -162,17 +172,17 @@ export function EnhancedDashboardStats({
           </div>
 
           <div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
-            <Card className='bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20'>
+            <Card className='bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700'>
               <CardContent className='p-3 sm:p-4'>
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-primary/20 flex items-center justify-center'>
-                    <Target className='h-4 w-4 sm:h-5 sm:w-5 text-primary' />
+                  <div className='h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-blue-200 dark:bg-blue-800 flex items-center justify-center'>
+                    <Target className='h-4 w-4 sm:h-5 sm:w-5 text-blue-700 dark:text-blue-300' />
                   </div>
                   <div className='min-w-0 flex-1'>
                     <p className='text-xs sm:text-sm font-medium text-muted-foreground'>
                       Game Bets
                     </p>
-                    <p className='text-lg sm:text-xl font-bold truncate'>
+                    <p className='text-lg sm:text-xl font-bold truncate text-foreground'>
                       {commaSeparated(selectedGameData.betCounts)}
                     </p>
                   </div>
@@ -180,17 +190,17 @@ export function EnhancedDashboardStats({
               </CardContent>
             </Card>
 
-            <Card className='bg-gradient-to-br from-green-50 to-green-100 border-green-200'>
+            <Card className='bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700'>
               <CardContent className='p-3 sm:p-4'>
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-green-200 flex items-center justify-center'>
-                    <DollarSign className='h-4 w-4 sm:h-5 sm:w-5 text-green-700' />
+                  <div className='h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-purple-200 dark:bg-purple-800 flex items-center justify-center'>
+                    <DollarSign className='h-4 w-4 sm:h-5 sm:w-5 text-purple-700 dark:text-purple-300' />
                   </div>
                   <div className='min-w-0 flex-1'>
                     <p className='text-xs sm:text-sm font-medium text-muted-foreground'>
                       Game Turnover
                     </p>
-                    <p className='text-lg sm:text-xl font-bold truncate'>
+                    <p className='text-lg sm:text-xl font-bold truncate text-foreground'>
                       {formatCurrency(selectedGameData.betAmount, currency)}
                     </p>
                   </div>
@@ -198,17 +208,17 @@ export function EnhancedDashboardStats({
               </CardContent>
             </Card>
 
-            <Card className='bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200'>
+            <Card className='bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700'>
               <CardContent className='p-3 sm:p-4'>
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-orange-200 flex items-center justify-center'>
-                    <Award className='h-4 w-4 sm:h-5 sm:w-5 text-orange-700' />
+                  <div className='h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-orange-200 dark:bg-orange-800 flex items-center justify-center'>
+                    <Award className='h-4 w-4 sm:h-5 sm:w-5 text-orange-700 dark:text-orange-300' />
                   </div>
                   <div className='min-w-0 flex-1'>
                     <p className='text-xs sm:text-sm font-medium text-muted-foreground'>
                       Game Winnings
                     </p>
-                    <p className='text-lg sm:text-xl font-bold truncate'>
+                    <p className='text-lg sm:text-xl font-bold truncate text-foreground'>
                       {formatCurrency(selectedGameData.winAmount, currency)}
                     </p>
                   </div>
@@ -217,26 +227,26 @@ export function EnhancedDashboardStats({
             </Card>
 
             <Card
-              className={`bg-gradient-to-br ${selectedGameData.margin >= 0 ? 'from-green-50 to-green-100 border-green-200' : 'from-red-50 to-red-100 border-red-200'}`}
+              className={`bg-gradient-to-br ${selectedGameData.margin >= 0 ? 'from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700' : 'from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border-red-200 dark:border-red-700'}`}
             >
               <CardContent className='p-3 sm:p-4'>
                 <div className='flex items-center gap-2 sm:gap-3'>
                   <div
-                    className={`h-8 w-8 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center ${selectedGameData.margin >= 0 ? 'bg-green-200' : 'bg-red-200'}`}
+                    className={`h-8 w-8 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center ${selectedGameData.margin >= 0 ? 'bg-green-200 dark:bg-green-800' : 'bg-red-200 dark:bg-red-800'}`}
                   >
                     {selectedGameData.margin >= 0 ? (
                       <TrendingUp
-                        className={`h-4 w-4 sm:h-5 sm:w-5 ${selectedGameData.margin >= 0 ? 'text-green-700' : 'text-red-700'}`}
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${selectedGameData.margin >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}
                       />
                     ) : (
-                      <TrendingDown className='h-4 w-4 sm:h-5 sm:w-5 text-red-700' />
+                      <TrendingDown className='h-4 w-4 sm:h-5 sm:w-5 text-red-700 dark:text-red-300' />
                     )}
                   </div>
                   <div className='min-w-0 flex-1'>
                     <p className='text-xs sm:text-sm font-medium text-muted-foreground'>
                       Game Margin
                     </p>
-                    <p className='text-lg sm:text-xl font-bold truncate'>
+                    <p className='text-lg sm:text-xl font-bold truncate text-foreground'>
                       {setNumberFormat(selectedGameData.margin, 2)}%
                     </p>
                   </div>
@@ -269,7 +279,7 @@ export function EnhancedDashboardStats({
                       <p className='text-xs font-medium text-muted-foreground truncate'>
                         {stat.title}
                       </p>
-                      <p className='text-lg font-bold truncate'>{stat.value}</p>
+                      <p className='text-lg font-bold truncate text-foreground'>{stat.value}</p>
                       {stat.trend && (
                         <Badge variant='outline' className='text-xs mt-1'>
                           {stat.trend}
@@ -306,7 +316,9 @@ export function EnhancedDashboardStats({
                       <p className='text-xs sm:text-sm font-medium text-muted-foreground'>
                         {stat.title}
                       </p>
-                      <p className='text-xl sm:text-2xl font-bold truncate'>{stat.value}</p>
+                      <p className='text-xl sm:text-2xl font-bold truncate text-foreground'>
+                        {stat.value}
+                      </p>
                       <p className='text-xs text-muted-foreground mt-1'>{stat.description}</p>
                     </div>
                   </div>

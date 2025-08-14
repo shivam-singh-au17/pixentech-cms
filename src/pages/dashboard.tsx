@@ -297,21 +297,25 @@ export function Dashboard() {
           {/* Context Header - Show what data is being displayed */}
           {selectedGame && (
             <div className='bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
-              <div className='flex items-center gap-3'>
-                <div className='flex items-center gap-2'>
-                  <div className='w-3 h-3 bg-blue-500 rounded-full'></div>
-                  <span className='text-blue-700 dark:text-blue-300 font-medium'>
-                    Viewing Game-Specific Analytics
-                  </span>
+              <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4'>
+                <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1'>
+                  <div className='flex items-center gap-2'>
+                    <div className='w-3 h-3 bg-blue-500 rounded-full'></div>
+                    <span className='text-blue-700 dark:text-blue-300 font-medium text-sm sm:text-base'>
+                      Viewing Game-Specific Analytics
+                    </span>
+                  </div>
+                  <div className='text-blue-600 dark:text-blue-400 font-semibold text-sm sm:text-base pl-5 sm:pl-0'>
+                    {selectedGame}
+                  </div>
                 </div>
-                <div className='text-blue-600 dark:text-blue-400 font-semibold'>{selectedGame}</div>
                 <Button
                   onClick={() => setSelectedGame(null)}
-                  variant='ghost'
                   size='sm'
-                  className='ml-auto text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300'
+                  className='text-xs sm:text-sm self-start sm:self-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 shadow-sm'
                 >
-                  View Overall Dashboard
+                  <span className='hidden sm:inline'>View Overall Dashboard</span>
+                  <span className='sm:hidden'>Overall View</span>
                 </Button>
               </div>
             </div>
@@ -319,14 +323,14 @@ export function Dashboard() {
 
           {!selectedGame && (
             <div className='bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4'>
-              <div className='flex items-center gap-3'>
+              <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3'>
                 <div className='flex items-center gap-2'>
                   <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                  <span className='text-green-700 dark:text-green-300 font-medium'>
+                  <span className='text-green-700 dark:text-green-300 font-medium text-sm sm:text-base'>
                     Overall Dashboard View
                   </span>
                 </div>
-                <span className='text-green-600 dark:text-green-400'>
+                <span className='text-green-600 dark:text-green-400 text-xs sm:text-sm pl-5 sm:pl-0'>
                   All games and players data
                 </span>
               </div>
