@@ -389,17 +389,27 @@ export function Sidebar() {
 
       {/* Collapse toggle (desktop only) */}
       {!isMobile && (
-        <div className='border-t p-4'>
+        <div className='border-t p-2'>
           <Button
             variant='ghost'
-            size='icon'
-            className='w-full'
+            size='sm'
+            className={cn(
+              'relative transition-all duration-200 group',
+              sidebarCollapsed
+                ? 'w-10 h-10 rounded-full bg-primary/10 hover:bg-primary hover:text-primary-foreground border border-primary/20 mx-auto'
+                : 'w-full justify-center hover:bg-primary hover:text-primary-foreground'
+            )}
             onClick={() => dispatch(toggleSidebar())}
           >
             {sidebarCollapsed ? (
-              <ChevronRight className='h-4 w-4' />
+              <div className='flex items-center justify-center'>
+                <ChevronRight className='h-5 w-5 text-primary group-hover:text-primary-foreground' />
+              </div>
             ) : (
-              <ChevronLeft className='h-4 w-4' />
+              <div className='flex items-center gap-2'>
+                <ChevronLeft className='h-4 w-4' />
+                <span className='text-sm font-medium'>Collapse Menu</span>
+              </div>
             )}
           </Button>
         </div>
