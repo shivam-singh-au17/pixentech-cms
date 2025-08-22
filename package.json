@@ -1,5 +1,5 @@
 {
-  "name": "pixen-tech-cms-fe",
+  "name": "crash-live-cms-fe",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -68,6 +68,6 @@
     "prettier": "^3.1.1",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8"
+    "vite": "^7.1.3"
   }
 }

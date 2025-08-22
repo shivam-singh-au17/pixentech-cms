@@ -4,7 +4,7 @@ export const config = {
     baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
   },
   app: {
-    name: import.meta.env.VITE_APP_NAME || 'Pixen Tech CMS',
+    name: import.meta.env.VITE_APP_NAME || 'Crash Live CMS',
     version: import.meta.env.VITE_APP_VERSION || '1.0.0',
   },
 } as const

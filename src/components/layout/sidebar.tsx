@@ -98,7 +98,7 @@ export function Sidebar() {
             className='flex items-center gap-2'
           >
             <Package className='h-8 w-8 text-primary' />
-            <span className='text-xl font-bold'>Pixen CMS</span>
+            <span className='text-xl font-bold'>Crash.Live CMS</span>
           </motion.div>
         ) : (
           <Package className='h-8 w-8 text-primary' />

@@ -1,4 +1,4 @@
-# Pixen Tech CMS - Gaming Analytics Admin Panel
+# Crash Live CMS - Gaming Analytics Admin Panel
 
 A modern, fully functional React-based Admin Panel for gaming analytics and content management, built with TypeScript, TanStack Query, and best practices for scalability and maintainability.
 
@@ -226,7 +226,7 @@ src/lib/api/
 
 ### Base Configuration
 
-- **Base URL**: `https://be.pixentech.com/bo/cms`
+- **Base URL**: `https://be.crash.live.com/bo/cms`
 - **Authentication**: Bearer token in Authorization header
 - **Error Handling**: Global error interceptors
 - **Retry Logic**: Automatic retries with exponential backoff
@@ -333,7 +333,7 @@ const publicRoutes = [
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd pixen-tech-cms-fe
+cd crash-live-cms-fe
 
 # Install dependencies
 npm install
@@ -476,4 +476,4 @@ const NewWidget = ({ data }) => {
 </div>
 ```
 
-This documentation provides a comprehensive overview of the Pixen Tech CMS Gaming Analytics Admin Panel, focusing on architecture, implementation patterns, and usage guidelines for future development and maintenance.
+This documentation provides a comprehensive overview of the Crash Live CMS Gaming Analytics Admin Panel, focusing on architecture, implementation patterns, and usage guidelines for future development and maintenance.

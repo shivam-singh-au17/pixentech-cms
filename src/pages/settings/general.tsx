@@ -47,7 +47,7 @@ export function Settings() {
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
             <div>
               <label className='text-sm font-medium mb-2 block'>Platform Name</label>
-              <Input defaultValue='Pixen Gaming Platform' />
+              <Input defaultValue='Crash.Live Gaming Platform' />
             </div>
             <div>
               <label className='text-sm font-medium mb-2 block'>Default Currency</label>
@@ -132,7 +132,7 @@ export function Settings() {
           </div>
           <div>
             <label className='text-sm font-medium mb-2 block'>Email Address</label>
-            <Input defaultValue='admin@pixentech.com' type='email' />
+            <Input defaultValue='admin@crash.live.com' type='email' />
           </div>
           <div>
             <label className='text-sm font-medium mb-2 block'>Phone Number</label>
@@ -351,7 +351,7 @@ export function Settings() {
         <CardContent className='space-y-4'>
           <div>
             <label className='text-sm font-medium mb-2 block'>API Base URL</label>
-            <Input defaultValue='https://api.pixentech.com/v1' />
+            <Input defaultValue='https://api.crash.live.com/v1' />
           </div>
           <div>
             <label className='text-sm font-medium mb-2 block'>API Key</label>
