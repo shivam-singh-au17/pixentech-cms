@@ -148,13 +148,13 @@ export function useBulkUpdateGames() {
 export function useGameTypeOptions() {
   const { data: gamesData } = useGames({ pageSize: 1000 })
 
-  const gameTypes = Array.from(new Set(gamesData?.games?.map(game => game.gameType) || [])).filter(
+  const gameTypes = Array.from(new Set(gamesData?.data?.map(game => game.gameType) || [])).filter(
     Boolean
   )
 
   return gameTypes.map(type => ({
-    value: type,
-    label: type?.toUpperCase() || '',
+    value: type as string,
+    label: (type as string)?.toUpperCase() || '',
   }))
 }
 
@@ -164,12 +164,12 @@ export function useGameTypeOptions() {
 export function useGameModeOptions() {
   const { data: gamesData } = useGames({ pageSize: 1000 })
 
-  const gameModes = Array.from(new Set(gamesData?.games?.map(game => game.gameMode) || [])).filter(
-    Boolean
-  )
+  const gameModes = Array.from(
+    new Set(gamesData?.data?.map((game: any) => game.gameMode) || [])
+  ).filter(Boolean)
 
   return gameModes.map(mode => ({
-    value: mode,
+    value: mode as string,
     label: `Mode ${mode}`,
   }))
 }

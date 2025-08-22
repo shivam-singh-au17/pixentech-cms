@@ -1,6 +1,6 @@
 /**
  * Operator Game Form Component
- * Form for creating and editing operator games
+ * Form for creating and editing operator games with hierarchical platform selection
  */
 
 import { useState, useEffect } from 'react'
@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/select'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Loader2 } from 'lucide-react'
-import { usePlatformData } from '@/hooks/usePlatformData'
-import { useFilterOptions } from '@/hooks/useGames'
+import { useHierarchicalPlatformData } from '@/hooks/useHierarchicalPlatformData'
+import { PlatformFilter, OperatorFilter, BrandFilter } from '@/components/common/PlatformFilters'
+import { useGameOptions } from '@/hooks/data'
 import type {
   OperatorGame,
   CreateOperatorGameData,
@@ -50,21 +51,15 @@ export function OperatorGameForm({
     maxWin: operatorGame?.maxWin?.toString() || '',
   })
 
-  // Get platform data
-  const {
-    platformOptions,
-    operatorOptions,
-    brandOptions,
-    isLoading: platformDataLoading,
-  } = usePlatformData({
-    autoFetch: true,
-    fetchPlatforms: true,
-    fetchOperators: true,
-    fetchBrands: true,
+  // Get hierarchical platform data for filter components (they manage their own data)
+  const { isLoading: platformDataLoading } = useHierarchicalPlatformData({
+    selectedPlatform: formData.platform,
+    selectedOperator: formData.operator,
   })
 
-  // Get game options
-  const { gameOptions } = useFilterOptions()
+  // Get game options using the unified data hook
+  const { data: gameData } = useGameOptions()
+  const gameOptions = gameData?.options || []
 
   // Update form when operatorGame changes
   useEffect(() => {
@@ -84,6 +79,34 @@ export function OperatorGameForm({
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  // Handle hierarchical platform filter changes
+  const handlePlatformChange = (value: string) => {
+    const platformId = value === 'all' ? '' : value
+    setFormData(prev => ({
+      ...prev,
+      platform: platformId,
+      operator: '', // Reset operator when platform changes
+      brand: '', // Reset brand when platform changes
+    }))
+  }
+
+  const handleOperatorChange = (value: string) => {
+    const operatorId = value === 'all' ? '' : value
+    setFormData(prev => ({
+      ...prev,
+      operator: operatorId,
+      brand: '', // Reset brand when operator changes
+    }))
+  }
+
+  const handleBrandChange = (value: string) => {
+    const brandId = value === 'all' ? '' : value
+    setFormData(prev => ({
+      ...prev,
+      brand: brandId,
+    }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -144,70 +167,52 @@ export function OperatorGameForm({
             </Select>
           </div>
 
-          {/* Platform Selection */}
-          <div className='space-y-2'>
-            <Label htmlFor='platform'>Platform *</Label>
-            <Select
-              value={formData.platform}
-              onValueChange={value => handleInputChange('platform', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder='Select a platform' />
-              </SelectTrigger>
-              <SelectContent>
-                {platformOptions
-                  .filter((platform: any) => platform.id !== 'ALL')
-                  .map((platform: any) => (
-                    <SelectItem key={platform.id} value={platform.id}>
-                      {platform.label}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Hierarchical Platform Selection */}
+          <div className='col-span-1 md:col-span-3 space-y-4'>
+            <Label className='text-base font-medium'>Platform Configuration *</Label>
+            <p className='text-sm text-gray-600'>
+              Select platform, operator, and brand. The selections work hierarchically.
+            </p>
 
-          {/* Operator Selection */}
-          <div className='space-y-2'>
-            <Label htmlFor='operator'>Operator *</Label>
-            <Select
-              value={formData.operator}
-              onValueChange={value => handleInputChange('operator', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder='Select an operator' />
-              </SelectTrigger>
-              <SelectContent>
-                {operatorOptions
-                  .filter((operator: any) => operator.id !== 'ALL')
-                  .map((operator: any) => (
-                    <SelectItem key={operator.id} value={operator.id}>
-                      {operator.label}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='space-y-2'>
+                <Label htmlFor='platform'>Platform</Label>
+                <PlatformFilter
+                  value={formData.platform}
+                  onChange={handlePlatformChange}
+                  placeholder='Select platform'
+                  className='w-full'
+                  showLabel={false}
+                />
+              </div>
 
-          {/* Brand Selection */}
-          <div className='space-y-2'>
-            <Label htmlFor='brand'>Brand *</Label>
-            <Select
-              value={formData.brand}
-              onValueChange={value => handleInputChange('brand', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder='Select a brand' />
-              </SelectTrigger>
-              <SelectContent>
-                {brandOptions
-                  .filter((brand: any) => brand.id !== 'ALL')
-                  .map((brand: any) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.label}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+              <div className='space-y-2'>
+                <Label htmlFor='operator'>Operator</Label>
+                <OperatorFilter
+                  value={formData.operator}
+                  onChange={handleOperatorChange}
+                  selectedPlatform={formData.platform}
+                  placeholder='Select operator'
+                  disabled={!formData.platform}
+                  className='w-full'
+                  showLabel={false}
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='brand'>Brand</Label>
+                <BrandFilter
+                  value={formData.brand}
+                  onChange={handleBrandChange}
+                  selectedPlatform={formData.platform}
+                  selectedOperator={formData.operator}
+                  placeholder='Select brand'
+                  disabled={!formData.operator}
+                  className='w-full'
+                  showLabel={false}
+                />
+              </div>
+            </div>
           </div>
         </>
       )}

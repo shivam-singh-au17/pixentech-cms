@@ -76,7 +76,7 @@ export function useUpdateUser() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateUserData }) => userApi.update(id, data),
+    mutationFn: ({ data }: { id: string; data: UpdateUserData }) => userApi.update(data),
     onSuccess: (_, { id }) => {
       // Invalidate specific user and lists
       queryClient.invalidateQueries({ queryKey: userKeys.detail(id) })

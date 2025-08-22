@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Plus,
-  Search,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -17,10 +16,15 @@ import {
   ToggleRight,
   DollarSign,
   Eye,
+  EyeOff,
   Tag,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -46,6 +50,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
@@ -62,6 +73,52 @@ import {
 } from '@/hooks/queries/useOperatorGameQueries'
 import { useAppSelector } from '@/store/hooks'
 import type { OperatorGame, OperatorGameListParams } from '@/lib/api/operatorGame'
+
+// Helper function for CSV export
+const exportToCSV = (data: any[], filename: string) => {
+  if (data.length === 0) return
+
+  const headers = Object.keys(data[0]).join(',')
+  const csvContent = [
+    headers,
+    ...data.map(row =>
+      Object.values(row)
+        .map(value => (typeof value === 'string' && value.includes(',') ? `"${value}"` : value))
+        .join(',')
+    ),
+  ].join('\n')
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${filename}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+}
+
+// Prepare operator game data for export
+const prepareOperatorGameExportData = (operatorGames: OperatorGame[]) => {
+  return operatorGames.map(game => ({
+    'Game ID': game._id,
+    'Game Name': game.gameName,
+    'Game Alias': game.gameAlias,
+    Platform: game.platform || 'N/A',
+    Operator: game.operator || 'N/A',
+    Brand: game.brand || 'N/A',
+    'Game Type': game.gameType || 'N/A',
+    'Launch Path': game.launchPath || 'N/A',
+    Status: game.isActive ? 'Active' : 'Inactive',
+    'Min Bet': game.minBet !== undefined ? `${game.minBet.toFixed(2)}` : 'N/A',
+    'Max Bet': game.maxBet !== undefined ? `${game.maxBet.toFixed(2)}` : 'N/A',
+    'Default Bet': game.defaultBet !== undefined ? `${game.defaultBet.toFixed(2)}` : 'N/A',
+    'Max Win': game.maxWin !== undefined ? `${game.maxWin.toFixed(2)}` : 'N/A',
+  }))
+}
 
 export default function OperatorGameManagementPage() {
   // Auth state to check if user is authenticated
@@ -92,6 +149,7 @@ export default function OperatorGameManagementPage() {
     pageNo: 1,
     pageSize: 20,
     sortDirection: 1,
+    sortBy: 'updatedAt',
   })
 
   // UI state
@@ -99,7 +157,7 @@ export default function OperatorGameManagementPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState<'compact' | 'detailed'>('compact')
 
   // Fetch operator games with parameters - only when ready for API calls
   const {
@@ -116,22 +174,11 @@ export default function OperatorGameManagementPage() {
   const toggleOperatorGameStatusMutation = useToggleOperatorGameStatus()
 
   const operatorGames = operatorGamesData?.data || []
-  const totalCount = operatorGames.length
-
-  // Handle search
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-    setFilters(prev => ({ ...prev, searchQuery: value, pageNo: 1 }))
-  }
+  const totalCount = operatorGamesData?.totalItems || operatorGames.length
 
   // Handle filter changes
   const handleFiltersChange = (newFilters: Partial<OperatorGameListParams>) => {
     setFilters(prev => ({ ...prev, ...newFilters, pageNo: 1 }))
-  }
-
-  // Handle apply filters
-  const handleApplyFilters = () => {
-    refetch()
   }
 
   // Handle reset filters
@@ -140,9 +187,51 @@ export default function OperatorGameManagementPage() {
       pageNo: 1,
       pageSize: 20,
       sortDirection: 1,
+      sortBy: 'updatedAt',
     }
     setFilters(resetFilters)
-    setSearchQuery('')
+  }
+
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    setFilters(prev => ({ ...prev, pageNo: page }))
+  }
+
+  const handlePageSizeChange = (pageSize: number) => {
+    setFilters(prev => ({ ...prev, pageSize, pageNo: 1 }))
+  }
+
+  // Handle sorting
+  const handleSort = (sortBy: string) => {
+    setFilters(prev => {
+      // If clicking the same column, toggle direction
+      if (prev.sortBy === sortBy) {
+        return {
+          ...prev,
+          sortDirection: prev.sortDirection === 1 ? -1 : 1,
+          pageNo: 1, // Reset to first page when sorting
+        }
+      }
+      // If clicking a different column, default to ascending (1)
+      return {
+        ...prev,
+        sortBy,
+        sortDirection: 1,
+        pageNo: 1,
+      }
+    })
+  }
+
+  // Get sort icon for column headers
+  const getSortIcon = (column: string) => {
+    if (filters.sortBy !== column) {
+      return <ArrowUpDown className='h-4 w-4' />
+    }
+    return filters.sortDirection === 1 ? (
+      <ArrowUp className='h-4 w-4' />
+    ) : (
+      <ArrowDown className='h-4 w-4' />
+    )
   }
 
   // Handle refresh
@@ -153,8 +242,19 @@ export default function OperatorGameManagementPage() {
 
   // Handle export
   const handleExport = () => {
-    // Export logic here
-    success('Export functionality will be implemented')
+    if (!operatorGames || operatorGames.length === 0) {
+      error('No operator games data available to export')
+      return
+    }
+
+    try {
+      const exportData = prepareOperatorGameExportData(operatorGames)
+      const timestamp = new Date().toISOString().split('T')[0]
+      exportToCSV(exportData, `operator-game-management-${timestamp}`)
+      success('Operator games data exported successfully')
+    } catch (err) {
+      error('Failed to export operator games data')
+    }
   }
 
   // Handle create operator game
@@ -215,6 +315,36 @@ export default function OperatorGameManagementPage() {
     setShowDetailsDialog(true)
   }
 
+  // Sortable Table Header Component
+  const SortableHeader = ({
+    column,
+    children,
+    className = '',
+  }: {
+    column: string
+    children: React.ReactNode
+    className?: string
+  }) => (
+    <TableHead className={className}>
+      <Button
+        variant='ghost'
+        size='sm'
+        className='h-auto p-0 font-semibold hover:bg-transparent'
+        onClick={() => handleSort(column)}
+        disabled={isFetching}
+      >
+        <div className='flex items-center gap-2'>
+          {children}
+          {isFetching && filters.sortBy === column ? (
+            <RefreshCw className='h-4 w-4 animate-spin' />
+          ) : (
+            getSortIcon(column)
+          )}
+        </div>
+      </Button>
+    </TableHead>
+  )
+
   // Loading skeleton
   const renderSkeleton = () => (
     <div className='space-y-4'>
@@ -240,31 +370,34 @@ export default function OperatorGameManagementPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'
+        className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6'
       >
-        <div className='space-y-1'>
-          <h1 className='text-2xl sm:text-3xl font-bold tracking-tight'>
+        {/* Title Section */}
+        <div className='flex-1 space-y-1'>
+          <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900'>
             Operator Game Management
           </h1>
-          <p className='text-gray-600 mt-2'>
+          <p className='text-sm sm:text-base text-gray-600 max-w-2xl'>
             Manage and configure operator games with comprehensive controls and analytics.
           </p>
         </div>
-        <div className='flex flex-col sm:flex-row gap-2'>
+
+        {/* Action Buttons */}
+        <div className='flex flex-col xs:flex-row sm:flex-row gap-2 sm:gap-3 lg:flex-shrink-0'>
           {/* Refresh Button */}
           <Button
             onClick={handleRefresh}
             size='sm'
             disabled={operatorGamesLoading || isFetching}
-            className='flex items-center gap-1 sm:gap-2 text-xs sm:text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0'
+            className='flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 transition-all duration-200 h-8 sm:h-9'
           >
             <RefreshCw
-              className={`h-3 w-3 sm:h-4 sm:w-4 ${operatorGamesLoading || isFetching ? 'animate-spin' : ''}`}
+              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${operatorGamesLoading || isFetching ? 'animate-spin' : ''}`}
             />
-            <span className='hidden sm:inline'>
+            <span className='hidden xs:inline whitespace-nowrap'>
               {operatorGamesLoading || isFetching ? 'Refreshing...' : 'Refresh Data'}
             </span>
-            <span className='sm:hidden'>
+            <span className='xs:hidden'>
               {operatorGamesLoading || isFetching ? '...' : 'Refresh'}
             </span>
           </Button>
@@ -273,11 +406,11 @@ export default function OperatorGameManagementPage() {
           <Button
             onClick={handleExport}
             size='sm'
-            className='flex items-center gap-1 sm:gap-2 text-xs sm:text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0'
+            className='flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 transition-all duration-200 h-8 sm:h-9'
           >
-            <Download className='h-3 w-3 sm:h-4 sm:w-4' />
-            <span className='hidden sm:inline'>Export CSV</span>
-            <span className='sm:hidden'>Export</span>
+            <Download className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
+            <span className='hidden xs:inline whitespace-nowrap'>Export CSV</span>
+            <span className='xs:hidden'>Export</span>
           </Button>
 
           {/* Create Button */}
@@ -285,11 +418,11 @@ export default function OperatorGameManagementPage() {
             <DialogTrigger asChild>
               <Button
                 size='sm'
-                className='flex items-center gap-1 sm:gap-2 text-xs sm:text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0'
+                className='flex items-center justify-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 transition-all duration-200 h-8 sm:h-9'
               >
-                <Plus className='h-3 w-3 sm:h-4 sm:w-4' />
-                <span className='hidden sm:inline'>Add Operator Game</span>
-                <span className='sm:hidden'>Add</span>
+                <Plus className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
+                <span className='hidden xs:inline whitespace-nowrap'>Add Operator Game</span>
+                <span className='xs:hidden'>Add</span>
               </Button>
             </DialogTrigger>
             <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
@@ -319,7 +452,6 @@ export default function OperatorGameManagementPage() {
         <OperatorGameFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
-          onApplyFilters={handleApplyFilters}
           onResetFilters={handleResetFilters}
           loading={operatorGamesLoading}
         />
@@ -407,23 +539,27 @@ export default function OperatorGameManagementPage() {
       >
         <Card className='bg-gradient-to-br from-white/80 to-gray-50/80 dark:from-gray-900/80 dark:to-gray-800/80 backdrop-blur-xl border-0 shadow-lg'>
           <CardHeader className='border-b border-gray-200 dark:border-gray-700'>
-            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
-              <CardTitle className='flex items-center gap-2'>
+            <CardTitle className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
                 <Gamepad2 className='h-5 w-5' />
                 Operator Games ({totalCount})
-              </CardTitle>
-
-              {/* Quick Search */}
-              <div className='relative max-w-sm'>
-                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-                <Input
-                  placeholder='Quick search...'
-                  value={searchQuery}
-                  onChange={e => handleSearch(e.target.value)}
-                  className='pl-10 h-9'
-                />
               </div>
-            </div>
+              <Button
+                onClick={() => setViewMode(viewMode === 'compact' ? 'detailed' : 'compact')}
+                variant='outline'
+                size='sm'
+                className='h-8 px-3'
+              >
+                {viewMode === 'compact' ? (
+                  <Eye className='h-4 w-4' />
+                ) : (
+                  <EyeOff className='h-4 w-4' />
+                )}
+                <span className='hidden sm:inline ml-2'>
+                  {viewMode === 'compact' ? 'Detailed' : 'Compact'}
+                </span>
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent className='p-0'>
             {operatorGamesLoading ? (
@@ -439,43 +575,38 @@ export default function OperatorGameManagementPage() {
                 </p>
               </div>
             ) : (
-              <div className='overflow-x-auto'>
+              <div className='relative overflow-x-auto'>
+                {isFetching && (
+                  <div className='absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center'>
+                    <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                      <RefreshCw className='h-4 w-4 animate-spin' />
+                      Sorting data...
+                    </div>
+                  </div>
+                )}
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className='w-[50px]'>Icon</TableHead>
-                      <TableHead>Game Name</TableHead>
-                      <TableHead>Game Code</TableHead>
-                      <TableHead className='hidden md:table-cell'>Launch Path</TableHead>
-                      <TableHead className='hidden lg:table-cell'>Min Bet</TableHead>
-                      <TableHead className='hidden lg:table-cell'>Max Bet</TableHead>
-                      <TableHead className='hidden xl:table-cell'>Default Bet</TableHead>
-                      <TableHead className='hidden xl:table-cell'>Max Win</TableHead>
-                      <TableHead>Status</TableHead>
+                      <SortableHeader column='gameName'>Game Name</SortableHeader>
+                      <SortableHeader column='gameAlias'>Game Code</SortableHeader>
+                      <TableHead className='hidden md:table-cell'>Platform</TableHead>
+                      <TableHead className='hidden lg:table-cell'>Operator</TableHead>
+                      <TableHead className='hidden xl:table-cell'>Brand</TableHead>
+                      {viewMode === 'detailed' && (
+                        <>
+                          <TableHead className='hidden lg:table-cell'>Min Bet</TableHead>
+                          <TableHead className='hidden lg:table-cell'>Max Bet</TableHead>
+                          <TableHead className='hidden xl:table-cell'>Default Bet</TableHead>
+                          <TableHead className='hidden xl:table-cell'>Max Win</TableHead>
+                        </>
+                      )}
+                      <SortableHeader column='isActive'>Status</SortableHeader>
                       <TableHead className='w-[70px]'>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {operatorGames.map(operatorGame => (
                       <TableRow key={operatorGame._id} className='hover:bg-muted/50'>
-                        <TableCell>
-                          <div className='flex items-center justify-center'>
-                            {operatorGame.icon ? (
-                              <img
-                                src={operatorGame.icon}
-                                alt={operatorGame.gameName}
-                                className='w-8 h-8 rounded object-cover border'
-                                onError={e => {
-                                  e.currentTarget.style.display = 'none'
-                                }}
-                              />
-                            ) : (
-                              <div className='w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center'>
-                                <Gamepad2 className='w-4 h-4 text-white' />
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
                         <TableCell>
                           <div className='space-y-1'>
                             <div className='font-medium'>{operatorGame.gameName}</div>
@@ -485,49 +616,67 @@ export default function OperatorGameManagementPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant='outline' className='font-mono text-xs'>
-                            {operatorGame.gameAlias}
-                          </Badge>
+                          <div className='text-sm font-mono'>{operatorGame.gameAlias}</div>
                         </TableCell>
                         <TableCell className='hidden md:table-cell'>
-                          <div className='max-w-[200px] truncate text-sm font-mono'>
-                            {operatorGame.launchPath}
+                          <div className='text-sm'>
+                            {operatorGame.platform || (
+                              <span className='text-muted-foreground'>-</span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className='hidden lg:table-cell'>
                           <div className='text-sm'>
-                            {operatorGame.minBet !== undefined
-                              ? `$${operatorGame.minBet.toFixed(2)}`
-                              : '-'}
-                          </div>
-                        </TableCell>
-                        <TableCell className='hidden lg:table-cell'>
-                          <div className='text-sm'>
-                            {operatorGame.maxBet !== undefined
-                              ? `$${operatorGame.maxBet.toFixed(2)}`
-                              : '-'}
+                            {operatorGame.operator || (
+                              <span className='text-muted-foreground'>-</span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className='hidden xl:table-cell'>
                           <div className='text-sm'>
-                            {operatorGame.defaultBet !== undefined
-                              ? `$${operatorGame.defaultBet.toFixed(2)}`
-                              : '-'}
+                            {operatorGame.brand || <span className='text-muted-foreground'>-</span>}
                           </div>
                         </TableCell>
-                        <TableCell className='hidden xl:table-cell'>
-                          <div className='text-sm'>
-                            {operatorGame.maxWin !== undefined
-                              ? `$${operatorGame.maxWin.toFixed(2)}`
-                              : '-'}
-                          </div>
-                        </TableCell>
+                        {viewMode === 'detailed' && (
+                          <>
+                            <TableCell className='hidden lg:table-cell'>
+                              <div className='text-sm'>
+                                {operatorGame.minBet !== undefined
+                                  ? `${operatorGame.minBet.toFixed(2)}`
+                                  : '-'}
+                              </div>
+                            </TableCell>
+                            <TableCell className='hidden lg:table-cell'>
+                              <div className='text-sm'>
+                                {operatorGame.maxBet !== undefined
+                                  ? `${operatorGame.maxBet.toFixed(2)}`
+                                  : '-'}
+                              </div>
+                            </TableCell>
+                            <TableCell className='hidden xl:table-cell'>
+                              <div className='text-sm'>
+                                {operatorGame.defaultBet !== undefined
+                                  ? `${operatorGame.defaultBet.toFixed(2)}`
+                                  : '-'}
+                              </div>
+                            </TableCell>
+                            <TableCell className='hidden xl:table-cell'>
+                              <div className='text-sm'>
+                                {operatorGame.maxWin !== undefined
+                                  ? `${operatorGame.maxWin.toFixed(2)}`
+                                  : '-'}
+                              </div>
+                            </TableCell>
+                          </>
+                        )}
                         <TableCell>
                           <div className='flex items-center gap-2'>
+                            {/* DISABLED: Status toggle functionality temporarily disabled - API not available */}
                             <Switch
                               checked={operatorGame.isActive}
                               onCheckedChange={() => handleToggleStatus(operatorGame)}
-                              disabled={toggleOperatorGameStatusMutation.isPending}
+                              disabled={true}
+                              className='opacity-60'
                             />
                             <Badge variant={operatorGame.isActive ? 'default' : 'secondary'}>
                               {operatorGame.isActive ? 'Active' : 'Inactive'}
@@ -558,12 +707,14 @@ export default function OperatorGameManagementPage() {
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
+                              {/* DISABLED: Delete operator game functionality temporarily disabled - API not available */}
                               <DropdownMenuItem
                                 onClick={() => handleDeleteOperatorGame(operatorGame)}
-                                className='text-red-600 dark:text-red-400'
+                                disabled={true}
+                                className='text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-60'
                               >
                                 <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
+                                Delete (Disabled)
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -572,6 +723,114 @@ export default function OperatorGameManagementPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!operatorGamesLoading && operatorGames.length > 0 && (
+              <div className='flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t'>
+                <div className='text-sm text-muted-foreground'>
+                  Showing {((filters.pageNo || 1) - 1) * (filters.pageSize || 20) + 1} to{' '}
+                  {Math.min(
+                    (filters.pageNo || 1) * (filters.pageSize || 20),
+                    operatorGamesData?.totalItems || operatorGames.length
+                  )}{' '}
+                  of {operatorGamesData?.totalItems || operatorGames.length} games
+                </div>
+
+                <div className='flex items-center gap-2'>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <span>Rows per page:</span>
+                    <Select
+                      value={(filters.pageSize || 20).toString()}
+                      onValueChange={value => handlePageSizeChange(Number(value))}
+                    >
+                      <SelectTrigger className='h-8 w-16'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='10'>10</SelectItem>
+                        <SelectItem value='20'>20</SelectItem>
+                        <SelectItem value='50'>50</SelectItem>
+                        <SelectItem value='100'>100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className='flex items-center gap-1'>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => handlePageChange((filters.pageNo || 1) - 1)}
+                      disabled={(filters.pageNo || 1) <= 1}
+                      className='h-8 w-8 p-0'
+                    >
+                      <ChevronLeft className='h-4 w-4' />
+                    </Button>
+
+                    <div className='flex items-center gap-1'>
+                      {(() => {
+                        const currentPage = filters.pageNo || 1
+                        const totalPages =
+                          operatorGamesData?.totalPages ||
+                          Math.ceil(
+                            (operatorGamesData?.totalItems || operatorGames.length) /
+                              (filters.pageSize || 20)
+                          )
+
+                        // Show only 3 pages at a time
+                        return Array.from({ length: Math.min(totalPages, 3) }, (_, i) => {
+                          let pageNum
+                          if (totalPages <= 3) {
+                            // If total pages is 3 or less, show all pages
+                            pageNum = i + 1
+                          } else if (currentPage <= 2) {
+                            // If on page 1 or 2, show 1, 2, 3
+                            pageNum = i + 1
+                          } else if (currentPage >= totalPages - 1) {
+                            // If on last 2 pages, show last 3 pages
+                            pageNum = totalPages - 2 + i
+                          } else {
+                            // For middle pages (including page 3), show current-1, current, current+1
+                            pageNum = currentPage - 1 + i
+                          }
+
+                          // Ensure pageNum is within valid range
+                          if (pageNum > totalPages || pageNum < 1) return null
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? 'default' : 'outline'}
+                              size='sm'
+                              onClick={() => handlePageChange(pageNum)}
+                              className='h-8 w-8 p-0'
+                            >
+                              {pageNum}
+                            </Button>
+                          )
+                        }).filter(Boolean)
+                      })()}
+                    </div>
+
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      onClick={() => handlePageChange((filters.pageNo || 1) + 1)}
+                      disabled={
+                        (filters.pageNo || 1) >=
+                        (operatorGamesData?.totalPages ||
+                          Math.ceil(
+                            (operatorGamesData?.totalItems || operatorGames.length) /
+                              (filters.pageSize || 20)
+                          ))
+                      }
+                      className='h-8 w-8 p-0'
+                    >
+                      <ChevronRight className='h-4 w-4' />
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

@@ -8,7 +8,7 @@ import { apiClient } from './index'
 export interface User {
   _id: string
   email: string
-  role: 'ROOT' | 'SUPER_ADMIN' | 'SUB_ADMIN' | 'ADMIN' | 'USER'
+  role: 'ROOT' | 'SUPER_ADMIN' | 'SUB_ADMIN' | 'MANAGER' | 'SUPPORT'
   isActive: boolean
   allowedBrands: string[]
   allowedOperators: string[]
@@ -22,26 +22,29 @@ export interface UserListParams {
   pageNo?: number
   pageSize?: number
   sortDirection?: 1 | -1
+  sortBy?: string
   platform?: string
   operator?: string
   brand?: string
   role?: string
   isActive?: boolean
-  searchQuery?: string
+  email?: string
 }
 
 export interface UserListResponse {
   data: User[]
+  totalItems: number
   limit: number
   page: number
-  totalCount?: number
+  totalPages: number
+  morePages: boolean
 }
 
 export interface CreateUserData {
   userName: string
   email: string
   password: string
-  role: 'SUPER_ADMIN' | 'SUB_ADMIN' | 'ADMIN' | 'USER'
+  role: 'SUPER_ADMIN' | 'SUB_ADMIN' | 'MANAGER' | 'SUPPORT'
   allowedPlatforms: string[]
   allowedOperators: string[]
   allowedBrands: string[]
@@ -51,7 +54,7 @@ export interface UpdateUserData {
   userName?: string
   email?: string
   password?: string
-  role?: 'SUPER_ADMIN' | 'SUB_ADMIN' | 'ADMIN' | 'USER'
+  role?: 'SUPER_ADMIN' | 'SUB_ADMIN' | 'MANAGER' | 'SUPPORT'
   allowedPlatforms?: string[]
   allowedOperators?: string[]
   allowedBrands?: string[]
@@ -70,6 +73,7 @@ export const userApi = {
       if (params.pageSize) searchParams.append('pageSize', params.pageSize.toString())
       if (params.sortDirection)
         searchParams.append('sortDirection', params.sortDirection.toString())
+      if (params.sortBy) searchParams.append('sortBy', params.sortBy)
       if (params.platform && params.platform !== 'ALL')
         searchParams.append('platform', params.platform)
       if (params.operator && params.operator !== 'ALL')
@@ -77,7 +81,7 @@ export const userApi = {
       if (params.brand && params.brand !== 'ALL') searchParams.append('brand', params.brand)
       if (params.role && params.role !== 'ALL') searchParams.append('role', params.role)
       if (params.isActive !== undefined) searchParams.append('isActive', params.isActive.toString())
-      if (params.searchQuery) searchParams.append('search', params.searchQuery)
+      if (params.email) searchParams.append('email', params.email)
 
       const queryString = searchParams.toString()
       const url = `/user/list${queryString ? `?${queryString}` : ''}`
@@ -85,23 +89,36 @@ export const userApi = {
       const response = await apiClient.get(url)
 
       // Handle the API response structure based on your provided data
-      if (response.data && Array.isArray(response.data)) {
+      if (response.data) {
         return {
-          data: response.data,
+          data: response.data || [],
+          totalItems: response.totalItems || 0,
           limit: response.limit || 25,
           page: response.page || 1,
+          totalPages: response.totalPages || 1,
+          morePages: response.morePages || false,
         }
       }
 
       // Fallback structure
       return {
-        data: response.data?.data || [],
-        limit: response.data?.limit || 25,
-        page: response.data?.page || 1,
+        data: [],
+        totalItems: 0,
+        limit: 25,
+        page: 1,
+        totalPages: 1,
+        morePages: false,
       }
     } catch (error) {
       console.error('Error fetching users:', error)
-      return { data: [], limit: 25, page: 1 }
+      return {
+        data: [],
+        totalItems: 0,
+        limit: 25,
+        page: 1,
+        totalPages: 1,
+        morePages: false,
+      }
     }
   },
 
@@ -124,8 +141,8 @@ export const userApi = {
   /**
    * Update user
    */
-  update: async (id: string, data: UpdateUserData): Promise<User> => {
-    const response = await apiClient.put<{ data: User }>(`/user/update/${id}`, data)
+  update: async (data: UpdateUserData): Promise<User> => {
+    const response = await apiClient.post<{ data: User }>(`/user/update`, data)
     return response.data
   },
 

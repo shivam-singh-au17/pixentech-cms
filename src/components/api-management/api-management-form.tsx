@@ -12,7 +12,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, X, Plus, Shield, Building, Users } from 'lucide-react'
+import {
+  AlertCircle,
+  X,
+  Plus,
+  Shield,
+  Crown,
+  UserCheck,
+  Briefcase,
+  Users,
+  Headphones,
+  Building,
+} from 'lucide-react'
 import { usePlatforms } from '@/hooks/queries/usePlatformQueries'
 import { useOperators } from '@/hooks/queries/useOperatorQueries'
 import { useBrands } from '@/hooks/queries/useBrandQueries'
@@ -20,11 +31,11 @@ import type { ApiManagement, CreateApiManagementData } from '@/lib/api/apiManage
 
 // Available roles
 const ROLES = [
-  { value: 'ROOT', label: 'Root', icon: Shield, color: 'destructive' },
+  { value: 'ROOT', label: 'Root', icon: Crown, color: 'destructive' },
   { value: 'SUPER_ADMIN', label: 'Super Admin', icon: Shield, color: 'default' },
-  { value: 'SUB_ADMIN', label: 'Sub Admin', icon: Shield, color: 'secondary' },
-  { value: 'ADMIN', label: 'Admin', icon: Shield, color: 'outline' },
-  { value: 'USER', label: 'User', icon: Users, color: 'outline' },
+  { value: 'SUB_ADMIN', label: 'Sub Admin', icon: UserCheck, color: 'secondary' },
+  { value: 'MANAGER', label: 'Manager', icon: Briefcase, color: 'outline' },
+  { value: 'SUPPORT', label: 'Support', icon: Headphones, color: 'outline' },
 ] as const
 
 // Form validation schema

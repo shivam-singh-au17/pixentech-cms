@@ -13,8 +13,6 @@ import storage from 'redux-persist/lib/storage'
 import { authSlice, AuthState } from './slices/authSlice'
 import { itemsSlice } from './slices/itemsSlice'
 import { uiSlice, UiState } from './slices/uiSlice'
-import { gamesSlice, GamesState } from './slices/gamesSlice'
-import { platformDataSlice, PlatformDataState } from './slices/platformDataSlice'
 
 // Persist config for auth slice
 const authPersistConfig = {
@@ -30,46 +28,12 @@ const uiPersistConfig = {
   whitelist: ['theme', 'sidebarCollapsed'],
 }
 
-// Persist config for games slice
-const gamesPersistConfig = {
-  key: 'games',
-  storage,
-  whitelist: [
-    'games',
-    'gameOptions',
-    'platformOptions',
-    'operatorOptions',
-    'brandOptions',
-    'lastFetched',
-  ],
-}
-
-// Persist config for platform data slice
-const platformDataPersistConfig = {
-  key: 'platformData',
-  storage,
-  whitelist: [
-    'platforms',
-    'operators',
-    'brands',
-    'platformOptions',
-    'operatorOptions',
-    'brandOptions',
-    'lastFetched',
-  ],
-}
-
 // Create store
 export const store = configureStore({
   reducer: {
     auth: persistReducer<AuthState>(authPersistConfig, authSlice.reducer),
     items: itemsSlice.reducer,
     ui: persistReducer<UiState>(uiPersistConfig, uiSlice.reducer),
-    games: persistReducer<GamesState>(gamesPersistConfig, gamesSlice.reducer),
-    platformData: persistReducer<PlatformDataState>(
-      platformDataPersistConfig,
-      platformDataSlice.reducer
-    ),
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

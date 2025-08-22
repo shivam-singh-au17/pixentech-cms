@@ -47,19 +47,22 @@ export interface Game {
 }
 
 export interface GameListParams {
-  pageNo?: number
-  pageSize?: number
-  sortDirection?: number
   gameType?: string
   isActive?: boolean
-  searchQuery?: string
+  pageSize?: number
+  pageNo?: number
+  sortBy?: string
+  sortDirection?: number
+  search?: string
 }
 
 export interface GameListResponse {
-  games: Game[]
-  totalCount?: number
-  currentPage?: number
-  totalPages?: number
+  data: Game[]
+  totalItems: number
+  limit: number
+  page: number
+  totalPages: number
+  morePages: boolean
 }
 
 export interface CreateGameData {
@@ -111,37 +114,19 @@ export const gameApi = {
 
       if (params.pageNo) searchParams.append('pageNo', params.pageNo.toString())
       if (params.pageSize) searchParams.append('pageSize', params.pageSize.toString())
+      if (params.sortBy) searchParams.append('sortBy', params.sortBy)
       if (params.sortDirection)
         searchParams.append('sortDirection', params.sortDirection.toString())
       if (params.gameType) searchParams.append('gameType', params.gameType)
       if (params.isActive !== undefined) searchParams.append('isActive', params.isActive.toString())
-      if (params.searchQuery) searchParams.append('searchQuery', params.searchQuery)
+      if (params.search) searchParams.append('search', params.search)
 
       const url = `/game/list?${searchParams.toString()}`
       const response = await apiClient.get(url)
       return response
-
-      // Ensure we return a proper structure even if API response is different
-      if (!response.data) {
-        return { games: [], totalCount: 0 }
-      }
-
-      // Handle different possible response structures
-      if (Array.isArray(response.data)) {
-        return { games: response.data, totalCount: response.data.length }
-      }
-
-      return {
-        games: response.data.games || response.data.data || [],
-        totalCount: response.data.totalCount || response.data.total || response.data.count || 0,
-        currentPage: response.data.currentPage || params.pageNo || 1,
-        totalPages:
-          response.data.totalPages ||
-          Math.ceil((response.data.totalCount || 0) / (params.pageSize || 20)),
-      }
     } catch (error) {
       console.error('Error fetching games:', error)
-      return { games: [], totalCount: 0 }
+      return { data: [], totalItems: 0, limit: 0, page: 1, totalPages: 0, morePages: false }
     }
   },
 

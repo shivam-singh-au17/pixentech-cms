@@ -29,6 +29,7 @@ export interface OperatorGameListParams {
   pageNo?: number
   pageSize?: number
   sortDirection?: 1 | -1
+  sortBy?: string
   platform?: string
   operator?: string
   brand?: string
@@ -40,9 +41,11 @@ export interface OperatorGameListParams {
 
 export interface OperatorGameListResponse {
   data: OperatorGame[]
+  totalItems: number
   limit: number
   page: number
-  totalCount?: number
+  totalPages: number
+  morePages: boolean
 }
 
 export interface CreateOperatorGameData {
@@ -76,6 +79,7 @@ export const operatorGameApi = {
       if (params.pageSize) searchParams.append('pageSize', params.pageSize.toString())
       if (params.sortDirection)
         searchParams.append('sortDirection', params.sortDirection.toString())
+      if (params.sortBy) searchParams.append('sortBy', params.sortBy)
       if (params.platform && params.platform !== 'ALL')
         searchParams.append('platform', params.platform)
       if (params.operator && params.operator !== 'ALL')
@@ -95,20 +99,40 @@ export const operatorGameApi = {
       if (response.data && Array.isArray(response.data)) {
         return {
           data: response.data,
+          totalItems: response.totalItems || response.data.length,
           limit: response.limit || 50,
           page: response.page || 1,
+          totalPages:
+            response.totalPages ||
+            Math.ceil((response.totalItems || response.data.length) / (response.limit || 50)),
+          morePages: response.morePages || false,
         }
       }
 
       // Fallback structure
       return {
         data: response.data?.data || [],
+        totalItems: response.data?.totalItems || response.data?.data?.length || 0,
         limit: response.data?.limit || 50,
         page: response.data?.page || 1,
+        totalPages:
+          response.data?.totalPages ||
+          Math.ceil(
+            (response.data?.totalItems || response.data?.data?.length || 0) /
+              (response.data?.limit || 50)
+          ),
+        morePages: response.data?.morePages || false,
       }
     } catch (error) {
       console.error('Error fetching operator games:', error)
-      return { data: [], limit: 50, page: 1 }
+      return {
+        data: [],
+        totalItems: 0,
+        limit: 50,
+        page: 1,
+        totalPages: 0,
+        morePages: false,
+      }
     }
   },
 

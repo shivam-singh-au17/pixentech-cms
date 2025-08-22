@@ -21,7 +21,7 @@ import { EnhancedCalendar } from '@/components/ui/enhanced-calendar'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { FilterOption } from '@/lib/types/summary'
-import { usePlatformData } from '@/hooks/usePlatformData'
+import { usePlatformData } from '@/hooks/data'
 
 interface SummaryFiltersProps {
   startDate: Date

@@ -171,7 +171,7 @@ export function OperatorGameDetails({ operatorGame, isLoading = false }: Operato
               <span className='text-sm font-medium text-muted-foreground'>Min Bet:</span>
               <span className='text-sm font-medium'>
                 {operatorGame.minBet !== undefined
-                  ? `$${operatorGame.minBet.toFixed(2)}`
+                  ? `${operatorGame.minBet.toFixed(2)}`
                   : 'Not set'}
               </span>
             </div>
@@ -179,7 +179,7 @@ export function OperatorGameDetails({ operatorGame, isLoading = false }: Operato
               <span className='text-sm font-medium text-muted-foreground'>Max Bet:</span>
               <span className='text-sm font-medium'>
                 {operatorGame.maxBet !== undefined
-                  ? `$${operatorGame.maxBet.toFixed(2)}`
+                  ? `${operatorGame.maxBet.toFixed(2)}`
                   : 'Not set'}
               </span>
             </div>
@@ -187,7 +187,7 @@ export function OperatorGameDetails({ operatorGame, isLoading = false }: Operato
               <span className='text-sm font-medium text-muted-foreground'>Default Bet:</span>
               <span className='text-sm font-medium'>
                 {operatorGame.defaultBet !== undefined
-                  ? `$${operatorGame.defaultBet.toFixed(2)}`
+                  ? `${operatorGame.defaultBet.toFixed(2)}`
                   : 'Not set'}
               </span>
             </div>
@@ -195,7 +195,7 @@ export function OperatorGameDetails({ operatorGame, isLoading = false }: Operato
               <span className='text-sm font-medium text-muted-foreground'>Max Win:</span>
               <span className='text-sm font-medium'>
                 {operatorGame.maxWin !== undefined
-                  ? `$${operatorGame.maxWin.toFixed(2)}`
+                  ? `${operatorGame.maxWin.toFixed(2)}`
                   : 'Not set'}
               </span>
             </div>

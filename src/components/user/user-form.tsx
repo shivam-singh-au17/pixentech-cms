@@ -15,15 +15,29 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DialogFooter } from '@/components/ui/dialog'
-import { Loader2, Eye, EyeOff } from 'lucide-react'
-import { usePlatformData } from '@/hooks/usePlatformData'
+import { Badge } from '@/components/ui/badge'
+import {
+  Loader2,
+  Eye,
+  EyeOff,
+  Crown,
+  Shield,
+  UserCheck,
+  Briefcase,
+  Headphones,
+  X,
+  Plus,
+} from 'lucide-react'
+import { useHierarchicalPlatformData } from '@/hooks/useHierarchicalPlatformData'
+import { PlatformFilter, OperatorFilter, BrandFilter } from '@/components/common/PlatformFilters'
 import type { User, CreateUserData, UpdateUserData } from '@/lib/api/user'
 
 const USER_ROLES = [
-  { value: 'SUPER_ADMIN', label: 'Super Admin' },
-  { value: 'SUB_ADMIN', label: 'Sub Admin' },
-  { value: 'ADMIN', label: 'Admin' },
-  { value: 'USER', label: 'User' },
+  { value: 'ROOT', label: 'Root', icon: Crown },
+  { value: 'SUPER_ADMIN', label: 'Super Admin', icon: Shield },
+  { value: 'SUB_ADMIN', label: 'Sub Admin', icon: UserCheck },
+  { value: 'MANAGER', label: 'Manager', icon: Briefcase },
+  { value: 'SUPPORT', label: 'Support', icon: Headphones },
 ]
 
 interface UserFormProps {
@@ -39,25 +53,30 @@ export function UserForm({ user, onSubmit, onCancel, isLoading = false, mode }: 
     userName: user?.userName || '',
     email: user?.email || '',
     password: '',
-    role: user?.role || 'USER',
+    role: user?.role || 'SUPPORT',
     allowedPlatforms: user?.allowedPlatforms || [],
     allowedOperators: user?.allowedOperators || [],
     allowedBrands: user?.allowedBrands || [],
   })
 
+  // Current selection state for adding new permissions
+  const [currentSelection, setCurrentSelection] = useState({
+    platform: '',
+    operator: '',
+    brand: '',
+  })
+
   const [showPassword, setShowPassword] = useState(false)
 
-  // Get platform data
+  // Get hierarchical platform data
   const {
     platformOptions,
-    operatorOptions,
-    brandOptions,
+    getOperatorsByPlatform,
+    getBrandsByPlatformAndOperator,
     isLoading: platformDataLoading,
-  } = usePlatformData({
-    autoFetch: true,
-    fetchPlatforms: true,
-    fetchOperators: true,
-    fetchBrands: true,
+  } = useHierarchicalPlatformData({
+    selectedPlatform: currentSelection.platform,
+    selectedOperator: currentSelection.operator,
   })
 
   // Update form when user changes
@@ -67,7 +86,7 @@ export function UserForm({ user, onSubmit, onCancel, isLoading = false, mode }: 
         userName: user.userName || '',
         email: user.email || '',
         password: '',
-        role: user.role || 'USER',
+        role: user.role || 'SUPPORT',
         allowedPlatforms: user.allowedPlatforms || [],
         allowedOperators: user.allowedOperators || [],
         allowedBrands: user.allowedBrands || [],
@@ -75,18 +94,82 @@ export function UserForm({ user, onSubmit, onCancel, isLoading = false, mode }: 
     }
   }, [user])
 
-  const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  // Handle current selection changes (for adding new permissions)
+  const handleCurrentSelectionChange = (field: string, value: string) => {
+    const selectedValue = value === 'all' ? '' : value
+    setCurrentSelection(prev => {
+      const updated = { ...prev, [field]: selectedValue }
+
+      // Reset dependent fields when parent changes
+      if (field === 'platform') {
+        updated.operator = ''
+        updated.brand = ''
+      } else if (field === 'operator') {
+        updated.brand = ''
+      }
+
+      return updated
+    })
   }
 
-  const handleMultiSelectChange = (field: string, value: string) => {
+  // Add selected combination to permissions
+  const addPermission = () => {
+    if (!currentSelection.platform) return
+
+    const newPlatforms = [...formData.allowedPlatforms]
+    const newOperators = [...formData.allowedOperators]
+    const newBrands = [...formData.allowedBrands]
+
+    // Add platform if not already added
+    if (!newPlatforms.includes(currentSelection.platform)) {
+      newPlatforms.push(currentSelection.platform)
+    }
+
+    // Add operator if selected and not already added
+    if (currentSelection.operator && !newOperators.includes(currentSelection.operator)) {
+      newOperators.push(currentSelection.operator)
+    }
+
+    // Add brand if selected and not already added
+    if (currentSelection.brand && !newBrands.includes(currentSelection.brand)) {
+      newBrands.push(currentSelection.brand)
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      allowedPlatforms: newPlatforms,
+      allowedOperators: newOperators,
+      allowedBrands: newBrands,
+    }))
+
+    // Reset current selection
+    setCurrentSelection({ platform: '', operator: '', brand: '' })
+  }
+
+  // Remove permission
+  const removePermission = (type: 'platform' | 'operator' | 'brand', value: string) => {
     setFormData(prev => {
-      const currentValues = prev[field as keyof typeof prev] as string[]
-      const newValues = currentValues.includes(value)
-        ? currentValues.filter(v => v !== value)
-        : [...currentValues, value]
-      return { ...prev, [field]: newValues }
+      if (type === 'platform') {
+        return {
+          ...prev,
+          allowedPlatforms: prev.allowedPlatforms.filter(p => p !== value),
+        }
+      } else if (type === 'operator') {
+        return {
+          ...prev,
+          allowedOperators: prev.allowedOperators.filter(o => o !== value),
+        }
+      } else {
+        return {
+          ...prev,
+          allowedBrands: prev.allowedBrands.filter(b => b !== value),
+        }
+      }
     })
+  }
+
+  const handleInputChange = (field: string, value: string | string[]) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -192,78 +275,192 @@ export function UserForm({ user, onSubmit, onCancel, isLoading = false, mode }: 
             <SelectValue placeholder='Select a role' />
           </SelectTrigger>
           <SelectContent>
-            {USER_ROLES.map(role => (
-              <SelectItem key={role.value} value={role.value}>
-                {role.label}
-              </SelectItem>
-            ))}
+            {USER_ROLES.map(role => {
+              const IconComponent = role.icon
+              return (
+                <SelectItem key={role.value} value={role.value}>
+                  <div className='flex items-center gap-2'>
+                    <IconComponent className='h-4 w-4' />
+                    {role.label}
+                  </div>
+                </SelectItem>
+              )
+            })}
           </SelectContent>
         </Select>
       </div>
 
       {/* Permissions */}
-      <div className='space-y-4'>
-        <Label className='text-base font-medium'>Permissions</Label>
-
-        {/* Platform Selection */}
-        <div className='space-y-2'>
-          <Label htmlFor='platforms'>Allowed Platforms</Label>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2'>
-            {platformOptions
-              .filter((platform: any) => platform.id !== 'ALL')
-              .map((platform: any) => (
-                <label key={platform.id} className='flex items-center space-x-2 cursor-pointer'>
-                  <input
-                    type='checkbox'
-                    checked={formData.allowedPlatforms.includes(platform.id)}
-                    onChange={() => handleMultiSelectChange('allowedPlatforms', platform.id)}
-                    className='rounded border-gray-300'
-                  />
-                  <span className='text-sm'>{platform.label}</span>
-                </label>
-              ))}
-          </div>
+      <div className='space-y-6'>
+        <div>
+          <Label className='text-base font-medium'>Platform Permissions</Label>
+          <p className='text-sm text-gray-600 mt-1'>
+            Add multiple platform, operator, and brand permissions for this user. Each combination
+            will be added separately.
+          </p>
         </div>
 
-        {/* Operator Selection */}
-        <div className='space-y-2'>
-          <Label htmlFor='operators'>Allowed Operators</Label>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2'>
-            {operatorOptions
-              .filter((operator: any) => operator.id !== 'ALL')
-              .map((operator: any) => (
-                <label key={operator.id} className='flex items-center space-x-2 cursor-pointer'>
-                  <input
-                    type='checkbox'
-                    checked={formData.allowedOperators.includes(operator.id)}
-                    onChange={() => handleMultiSelectChange('allowedOperators', operator.id)}
-                    className='rounded border-gray-300'
-                  />
-                  <span className='text-sm'>{operator.label}</span>
-                </label>
-              ))}
+        {/* Add New Permission Section */}
+        <div className='border rounded-lg p-4 bg-gray-50'>
+          <Label className='text-sm font-medium mb-3 block'>Add New Permission</Label>
+
+          {/* Hierarchical Platform Filters */}
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='platform' className='text-xs font-medium text-gray-700'>
+                Platform
+              </Label>
+              <PlatformFilter
+                value={currentSelection.platform}
+                onChange={value => handleCurrentSelectionChange('platform', value)}
+                placeholder='Select platform'
+                className='w-full'
+                showLabel={false}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='operator' className='text-xs font-medium text-gray-700'>
+                Operator
+              </Label>
+              <OperatorFilter
+                value={currentSelection.operator}
+                onChange={value => handleCurrentSelectionChange('operator', value)}
+                selectedPlatform={currentSelection.platform}
+                placeholder='Select operator'
+                disabled={!currentSelection.platform}
+                className='w-full'
+                showLabel={false}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='brand' className='text-xs font-medium text-gray-700'>
+                Brand
+              </Label>
+              <BrandFilter
+                value={currentSelection.brand}
+                onChange={value => handleCurrentSelectionChange('brand', value)}
+                selectedPlatform={currentSelection.platform}
+                selectedOperator={currentSelection.operator}
+                placeholder='Select brand'
+                disabled={!currentSelection.operator}
+                className='w-full'
+                showLabel={false}
+              />
+            </div>
           </div>
+
+          {/* Add Button */}
+          <Button
+            type='button'
+            size='sm'
+            onClick={addPermission}
+            disabled={!currentSelection.platform}
+            className='flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white'
+          >
+            <Plus className='h-4 w-4' />
+            Add Permission
+          </Button>
         </div>
 
-        {/* Brand Selection */}
-        <div className='space-y-2'>
-          <Label htmlFor='brands'>Allowed Brands</Label>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2'>
-            {brandOptions
-              .filter((brand: any) => brand.id !== 'ALL')
-              .map((brand: any) => (
-                <label key={brand.id} className='flex items-center space-x-2 cursor-pointer'>
-                  <input
-                    type='checkbox'
-                    checked={formData.allowedBrands.includes(brand.id)}
-                    onChange={() => handleMultiSelectChange('allowedBrands', brand.id)}
-                    className='rounded border-gray-300'
-                  />
-                  <span className='text-sm'>{brand.label}</span>
-                </label>
-              ))}
+        {/* Current Permissions Display */}
+        {(formData.allowedPlatforms.length > 0 ||
+          formData.allowedOperators.length > 0 ||
+          formData.allowedBrands.length > 0) && (
+          <div className='space-y-4'>
+            <Label className='text-sm font-medium'>Current Permissions</Label>
+
+            {/* Platforms */}
+            {formData.allowedPlatforms.length > 0 && (
+              <div className='space-y-2'>
+                <Label className='text-xs font-medium text-gray-700'>Platforms:</Label>
+                <div className='flex flex-wrap gap-2'>
+                  {formData.allowedPlatforms.map(platformId => {
+                    const platform = platformOptions.find(p => p.value === platformId)
+                    return (
+                      <Badge
+                        key={platformId}
+                        variant='secondary'
+                        className='flex items-center gap-1 bg-blue-100 text-blue-800 hover:bg-blue-200'
+                      >
+                        {platform?.label || platformId}
+                        <X
+                          className='h-3 w-3 cursor-pointer hover:text-red-600'
+                          onClick={() => removePermission('platform', platformId)}
+                        />
+                      </Badge>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Operators */}
+            {formData.allowedOperators.length > 0 && (
+              <div className='space-y-2'>
+                <Label className='text-xs font-medium text-gray-700'>Operators:</Label>
+                <div className='flex flex-wrap gap-2'>
+                  {formData.allowedOperators.map(operatorId => {
+                    // Get all operators to find the label
+                    let operatorLabel = operatorId
+                    formData.allowedPlatforms.forEach(platformId => {
+                      const operators = getOperatorsByPlatform(platformId)
+                      const operator = operators.find(o => o.value === operatorId)
+                      if (operator) operatorLabel = operator.label
+                    })
+                    return (
+                      <Badge
+                        key={operatorId}
+                        variant='secondary'
+                        className='flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-200'
+                      >
+                        {operatorLabel}
+                        <X
+                          className='h-3 w-3 cursor-pointer hover:text-red-600'
+                          onClick={() => removePermission('operator', operatorId)}
+                        />
+                      </Badge>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Brands */}
+            {formData.allowedBrands.length > 0 && (
+              <div className='space-y-2'>
+                <Label className='text-xs font-medium text-gray-700'>Brands:</Label>
+                <div className='flex flex-wrap gap-2'>
+                  {formData.allowedBrands.map(brandId => {
+                    // Get all brands to find the label
+                    let brandLabel = brandId
+                    formData.allowedPlatforms.forEach(platformId => {
+                      formData.allowedOperators.forEach(operatorId => {
+                        const brands = getBrandsByPlatformAndOperator(platformId, operatorId)
+                        const brand = brands.find(b => b.value === brandId)
+                        if (brand) brandLabel = brand.label
+                      })
+                    })
+                    return (
+                      <Badge
+                        key={brandId}
+                        variant='secondary'
+                        className='flex items-center gap-1 bg-purple-100 text-purple-800 hover:bg-purple-200'
+                      >
+                        {brandLabel}
+                        <X
+                          className='h-3 w-3 cursor-pointer hover:text-red-600'
+                          onClick={() => removePermission('brand', brandId)}
+                        />
+                      </Badge>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       <DialogFooter>

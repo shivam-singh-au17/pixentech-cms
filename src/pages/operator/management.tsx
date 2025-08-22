@@ -1,6 +1,6 @@
 /**
  * Operator Management Page
- * Comprehensive operator CRUD operations with modern UI
+ * Comprehensive operatoimport { usePlatformData } from '@/hooks/data';mport { usePlatformData } from '@/hooks/data';mport { usePlatformData } from "@/hooks/data"; CRUD operations with modern UI
  */
 
 import { useState } from 'react'
@@ -56,7 +56,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { OperatorForm } from '@/components/operator/operator-form'
 import { OperatorDetails } from '@/components/operator/operator-details'
-import { usePlatformData } from '@/hooks/usePlatformData'
+import { usePlatformData } from '@/hooks/data'
 import { useDeleteOperator } from '@/hooks/queries/useOperatorQueries'
 import { formatDateSafe } from '@/lib/utils/summary'
 import { cn } from '@/lib/utils'

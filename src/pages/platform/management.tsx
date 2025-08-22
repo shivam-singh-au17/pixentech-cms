@@ -1,6 +1,6 @@
 /**
  * Platform Management Page
- * Comprehensive platform CRUD operations with modern UI
+ * Comprehensive import { usePlatformData } from '@/hooks/data';mport { usePlatformData } from '@/hooks/data';mport { usePlatformData } from "@/hooks/data";latform CRUD operations with modern UI
  */
 
 import { useState } from 'react'
@@ -49,7 +49,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { PlatformForm } from '@/components/platform/platform-form-simplified'
 import { PlatformDetails } from '@/components/platform/platform-details-simplified'
-import { usePlatformData } from '@/hooks/usePlatformData'
+import { usePlatformData } from '@/hooks/data'
 import { useDeletePlatform } from '@/hooks/queries/usePlatformQueries'
 import { formatDateSafe } from '@/lib/utils/summary'
 import { cn } from '@/lib/utils'

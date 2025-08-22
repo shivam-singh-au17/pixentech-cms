@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useAppSelector } from '@/store/hooks'
-import { useGames } from '@/hooks/useGames'
+import { useGameOptions } from '@/hooks/data'
 import {
   useDashboardChartData,
   useDashboardData,
@@ -53,7 +53,8 @@ export function Dashboard() {
   const [selectedGame, setSelectedGame] = useState<string | null>(null)
 
   // Use games hook for game options
-  const { gameOptions } = useGames()
+  const { data: gameData } = useGameOptions()
+  const gameOptions = gameData?.options || []
 
   // Helper function to get current day start and end times
   const getCurrentDayRange = () => {

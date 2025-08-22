@@ -7,7 +7,19 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { User as UserIcon, Shield, Activity, Building2, Users, Tag, Calendar } from 'lucide-react'
+import {
+  User as UserIcon,
+  Shield,
+  Crown,
+  UserCheck,
+  Briefcase,
+  Headphones,
+  Activity,
+  Building2,
+  Users,
+  Tag,
+  Calendar,
+} from 'lucide-react'
 import type { User } from '@/lib/api/user'
 
 interface UserDetailsProps {
@@ -52,14 +64,14 @@ export function UserDetails({ user, isLoading = false }: UserDetailsProps) {
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      ROOT: { variant: 'destructive' as const, icon: Shield, label: 'Root' },
+      ROOT: { variant: 'destructive' as const, icon: Crown, label: 'Root' },
       SUPER_ADMIN: { variant: 'default' as const, icon: Shield, label: 'Super Admin' },
-      SUB_ADMIN: { variant: 'secondary' as const, icon: Shield, label: 'Sub Admin' },
-      ADMIN: { variant: 'outline' as const, icon: Shield, label: 'Admin' },
-      USER: { variant: 'outline' as const, icon: UserIcon, label: 'User' },
+      SUB_ADMIN: { variant: 'secondary' as const, icon: UserCheck, label: 'Sub Admin' },
+      MANAGER: { variant: 'outline' as const, icon: Briefcase, label: 'Manager' },
+      SUPPORT: { variant: 'outline' as const, icon: Headphones, label: 'Support' },
     }
 
-    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.USER
+    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.SUPPORT
     const IconComponent = config.icon
 
     return (

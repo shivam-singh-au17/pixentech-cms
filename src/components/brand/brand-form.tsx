@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCreateBrand, useUpdateBrand } from '@/hooks/queries/useBrandQueries'
-import { usePlatformData } from '@/hooks/usePlatformData'
+import { usePlatformData } from '@/hooks/data'
 import type { Brand, CreateBrandRequest } from '@/lib/types/platform-updated'
 
 interface BrandFormProps {

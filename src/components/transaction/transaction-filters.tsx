@@ -1,5 +1,5 @@
 /**
- * Transaction Filters Component
+ * Transaction Fiimport { usePlatformData } from '@/hooks/data';mport { usePlatformData } from '@/hooks/data';mport { usePlatformData } from "@/hooks/data";ters Component
  * Advanced filtering for transaction reports with date range, platform, operator, brand, game, status, and search filters
  */
 
@@ -19,8 +19,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-import { useFilterOptions } from '@/hooks/useGames'
-import { usePlatformData } from '@/hooks/usePlatformData'
+import { useGameOptions } from '@/hooks/data'
+import { usePlatformData } from '@/hooks/data'
 import { TRANSACTION_STATUS_OPTIONS } from '@/lib/types/transaction'
 import type { TransactionFilter } from '@/lib/types/transaction'
 
@@ -53,7 +53,8 @@ export function TransactionFilters({
   })
 
   // Get game options from the games hook (keeping this as games are specific to the games module)
-  const { gameOptions } = useFilterOptions()
+  const { data: gameData } = useGameOptions()
+  const gameOptions = gameData?.options || []
 
   // Add "All" option to the beginning if not already present
   const finalPlatformOptions = [

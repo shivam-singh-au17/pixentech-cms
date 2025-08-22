@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
-import { useFilterOptions } from '@/hooks/useGames'
+import { useGameOptions } from '@/hooks/data'
 import { usePlayerGameSummary, useSummaryData } from '@/hooks/queries/useSummaryQueries'
 import { SummaryFilters } from '@/components/summary/summary-filters'
 import { SummaryTable } from '@/components/summary/summary-table'
@@ -32,7 +32,8 @@ const getCurrentDayRange = () => {
 
 export function PlayerGameSummaryPage() {
   // Use games hook for filter options
-  const { gameOptions } = useFilterOptions()
+  const { data: gameData } = useGameOptions()
+  const gameOptions = gameData?.options || []
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
