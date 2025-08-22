@@ -4,7 +4,7 @@
  */
 
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:4002/cms',
+  BASE_URL: 'https://be.pixentech.com/bo/cms',
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
